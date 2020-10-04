@@ -102,9 +102,6 @@ type proxyRun interface {
 
 // Options contains everything necessary to create and run a proxy server.
 type Options struct {
-	// ConfigFile is the location of the proxy server's configuration file.
-	ConfigFile string
-	// WriteConfigTo is the path where the default configuration will be written.
 	WriteConfigTo string
 	// CleanupAndExit, when true, makes the proxy server clean up iptables and ipvs rules, then exit.
 	CleanupAndExit bool
@@ -142,7 +139,7 @@ type Options struct {
 func (o *Options) AddFlags(fs *pflag.FlagSet) {
 	o.addOSFlags(fs)
 
-	fs.StringVar(&o.ConfigFile, "config", o.ConfigFile, "The path to the configuration file.")
+	fs.StringVar(&o.config.ConfigFile, "config", o.config.ConfigFile, "The path to the configuration file.")
 	fs.StringVar(&o.WriteConfigTo, "write-config-to", o.WriteConfigTo, "If set, write the default configuration values to this file and exit.")
 	fs.StringVar(&o.config.ClientConnection.Kubeconfig, "kubeconfig", o.config.ClientConnection.Kubeconfig, "Path to kubeconfig file with authorization information (the master location can be overridden by the master flag).")
 	fs.StringVar(&o.config.ClusterCIDR, "cluster-cidr", o.config.ClusterCIDR, "The CIDR range of pods in the cluster. When configured, traffic sent to a Service cluster IP from outside this range will be masqueraded and traffic sent from pods to an external LoadBalancer IP will be directed to the respective cluster IP instead")
@@ -222,15 +219,15 @@ func NewOptions() *Options {
 
 // Complete completes all the required options.
 func (o *Options) Complete() error {
-	if len(o.ConfigFile) == 0 && len(o.WriteConfigTo) == 0 {
+	if len(o.config.ConfigFile) == 0 && len(o.WriteConfigTo) == 0 {
 		klog.Warning("WARNING: all flags other than --config, --write-config-to, and --cleanup are deprecated. Please begin using a config file ASAP.")
 		o.config.HealthzBindAddress = addressFromDeprecatedFlags(o.config.HealthzBindAddress, o.healthzPort)
 		o.config.MetricsBindAddress = addressFromDeprecatedFlags(o.config.MetricsBindAddress, o.metricsPort)
 	}
 
 	// Load the config file here in Complete, so that Validate validates the fully-resolved config.
-	if len(o.ConfigFile) > 0 {
-		c, err := o.loadConfigFromFile(o.ConfigFile)
+	if len(o.config.ConfigFile) > 0 {
+		c, err := o.loadConfigFromFile(o.config.ConfigFile)
 		if err != nil {
 			return err
 		}
@@ -255,7 +252,7 @@ func (o *Options) initWatcher() error {
 	if err != nil {
 		return err
 	}
-	err = fswatcher.AddWatch(o.ConfigFile)
+	err = fswatcher.AddWatch(o.config.ConfigFile)
 	if err != nil {
 		return err
 	}

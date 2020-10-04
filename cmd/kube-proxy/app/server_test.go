@@ -491,7 +491,7 @@ udpIdleTimeout: 250ms`)
 		}
 
 		opt := NewOptions()
-		opt.ConfigFile = file.Name()
+		opt.config.ConfigFile = file.Name()
 		err = opt.Complete()
 		if err != nil {
 			t.Fatal(err)

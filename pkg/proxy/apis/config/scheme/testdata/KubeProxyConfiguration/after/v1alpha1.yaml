@@ -8,6 +8,7 @@ clientConnection:
   kubeconfig: ""
   qps: 5
 clusterCIDR: ""
+configFile: ""
 configSyncPeriod: 15m0s
 conntrack:
   maxPerCore: 32768
